@@ -68,11 +68,11 @@ const Index = () => {
           {/* Header */}
           <header className="bg-card/80 backdrop-blur-sm border-b border-border shadow-green">
             <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3 md:hidden">
+              <div className="flex items-center gap-3">
                 <SidebarTrigger />
               </div>
               
-              <div className="flex-1 flex items-center justify-between">
+              <div className="flex-1 flex items-center justify-between ml-3">
                 <div className="flex items-center gap-2">
                   <div className="h-10 w-10 rounded-full bg-gradient-eco flex items-center justify-center text-white font-semibold">
                     {userName.charAt(0)}
