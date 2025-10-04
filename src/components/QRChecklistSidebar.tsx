@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Leaf, QrCode } from "lucide-react";
+import { Leaf, QrCode, ClipboardCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -20,25 +20,21 @@ interface QRCodeItem {
   checked: boolean;
 }
 
-const initialQRCodes: QRCodeItem[] = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  label: `QR CODE ${i + 1}`,
-  checked: false,
-}));
+interface QRChecklistSidebarProps {
+  qrCodes: QRCodeItem[];
+}
 
-export function QRChecklistSidebar() {
+export function QRChecklistSidebar({ qrCodes }: QRChecklistSidebarProps) {
   const { open } = useSidebar();
-  const [qrCodes, setQRCodes] = useState<QRCodeItem[]>(initialQRCodes);
-
-  const toggleQRCode = (id: number) => {
-    setQRCodes((prev) =>
-      prev.map((qr) => (qr.id === id ? { ...qr, checked: !qr.checked } : qr))
-    );
-  };
+  const navigate = useNavigate();
 
   const completedCount = qrCodes.filter((qr) => qr.checked).length;
   const totalCount = qrCodes.length;
   const progressPercentage = (completedCount / totalCount) * 100;
+
+  const handleQuizClick = () => {
+    navigate("/quiz");
+  };
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -79,19 +75,38 @@ export function QRChecklistSidebar() {
             <SidebarMenu>
               {qrCodes.map((qr) => (
                 <SidebarMenuItem key={qr.id}>
-                  <label
-                    className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors"
-                  >
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-md">
                     <Checkbox
                       checked={qr.checked}
-                      onCheckedChange={() => toggleQRCode(qr.id)}
-                      className="data-[state=checked]:bg-sidebar-primary data-[state=checked]:border-sidebar-primary"
+                      disabled
+                      className="data-[state=checked]:bg-sidebar-primary data-[state=checked]:border-sidebar-primary opacity-100"
                     />
                     <QrCode className="h-4 w-4 text-sidebar-foreground/70" />
                     <span className="text-sm text-sidebar-foreground">{qr.label}</span>
-                  </label>
+                  </div>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/80">
+            Finalização
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <button
+                  onClick={handleQuizClick}
+                  className="flex items-center gap-3 px-4 py-3 w-full cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors"
+                >
+                  <ClipboardCheck className="h-4 w-4 text-sidebar-primary" />
+                  <span className="text-sm font-medium text-sidebar-foreground">
+                    Quiz Final
+                  </span>
+                </button>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -1,7 +1,22 @@
-import { Settings, MapPin, Calendar, Leaf } from "lucide-react";
+import { useState } from "react";
+import { Settings, MapPin, Calendar, Leaf, ScanLine } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { QRChecklistSidebar } from "@/components/QRChecklistSidebar";
+import { QRScanner } from "@/components/QRScanner";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+interface QRCodeItem {
+  id: number;
+  label: string;
+  checked: boolean;
+}
+
+const initialQRCodes: QRCodeItem[] = Array.from({ length: 10 }, (_, i) => ({
+  id: i + 1,
+  label: `QR CODE ${i + 1}`,
+  checked: false,
+}));
 
 const Index = () => {
   const userName = "João Silva";
@@ -12,10 +27,42 @@ const Index = () => {
   });
   const location = "São Paulo, SP";
 
+  const [qrCodes, setQRCodes] = useState<QRCodeItem[]>(initialQRCodes);
+  const [showScanner, setShowScanner] = useState(false);
+
+  const handleScanSuccess = (decodedText: string) => {
+    // Expected format: "QRCODE-1", "QRCODE-2", etc.
+    const match = decodedText.match(/QRCODE-(\d+)/i);
+    
+    if (match) {
+      const qrId = parseInt(match[1]);
+      
+      setQRCodes((prev) =>
+        prev.map((qr) =>
+          qr.id === qrId ? { ...qr, checked: true } : qr
+        )
+      );
+
+      toast.success(`QR Code ${qrId} verificado com sucesso!`, {
+        description: "Continue escaneando os próximos códigos.",
+      });
+    } else {
+      toast.error("QR Code não reconhecido", {
+        description: "Certifique-se de escanear um QR code válido do sistema.",
+      });
+    }
+
+    setShowScanner(false);
+  };
+
+  const completedCount = qrCodes.filter((qr) => qr.checked).length;
+  const totalCount = qrCodes.length;
+  const progressPercentage = (completedCount / totalCount) * 100;
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-eco">
-        <QRChecklistSidebar />
+        <QRChecklistSidebar qrCodes={qrCodes} />
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
@@ -97,30 +144,30 @@ const Index = () => {
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
                         <span className="text-primary">•</span>
-                        <span>Abra o menu lateral para ver todos os QR codes</span>
+                        <span>Clique no botão "Escanear QR Code" abaixo</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary">•</span>
-                        <span>Marque cada QR code conforme for verificando</span>
+                        <span>Posicione a câmera no QR code para verificar</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary">•</span>
-                        <span>Acompanhe seu progresso em tempo real</span>
+                        <span>Após verificar todos, acesse o Quiz Final no menu</span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 bg-gradient-eco rounded-lg text-white text-center">
-                      <p className="text-3xl font-bold">10</p>
+                      <p className="text-3xl font-bold">{totalCount}</p>
                       <p className="text-sm opacity-90">QR Codes Total</p>
                     </div>
                     <div className="p-4 bg-accent rounded-lg text-white text-center">
-                      <p className="text-3xl font-bold">0</p>
+                      <p className="text-3xl font-bold">{completedCount}</p>
                       <p className="text-sm opacity-90">Verificados</p>
                     </div>
                     <div className="p-4 bg-secondary rounded-lg text-secondary-foreground text-center">
-                      <p className="text-3xl font-bold">0%</p>
+                      <p className="text-3xl font-bold">{progressPercentage.toFixed(0)}%</p>
                       <p className="text-sm">Progresso</p>
                     </div>
                   </div>
@@ -128,7 +175,24 @@ const Index = () => {
               </div>
             </div>
           </main>
+
+          {/* Floating Scan Button */}
+          <Button
+            onClick={() => setShowScanner(true)}
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-green bg-gradient-eco hover:opacity-90 transition-opacity"
+            size="icon"
+          >
+            <ScanLine className="h-6 w-6" />
+          </Button>
         </div>
+
+        {/* QR Scanner Modal */}
+        {showScanner && (
+          <QRScanner
+            onScanSuccess={handleScanSuccess}
+            onClose={() => setShowScanner(false)}
+          />
+        )}
       </div>
     </SidebarProvider>
   );
